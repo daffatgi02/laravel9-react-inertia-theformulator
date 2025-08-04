@@ -15,25 +15,31 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'Jose Asmodeus',
                 'email' => 'jose@theformulator.com',
+                'email_verified_at' => now(),
                 'password' => Hash::make('admin123'),
                 'role' => 'admin'
             ],
             [
                 'name' => 'Admin The Formulator',
                 'email' => 'admin@theformulator.com',
+                'email_verified_at' => now(),
                 'password' => Hash::make('admin123'),
                 'role' => 'admin'
             ],
             [
                 'name' => 'Content Manager',
                 'email' => 'content@theformulator.com',
+                'email_verified_at' => now(),
                 'password' => Hash::make('admin123'),
                 'role' => 'admin'
             ]
         ];
 
         foreach ($admins as $admin) {
-            User::create($admin);
+            User::updateOrCreate(
+                ['email' => $admin['email']], // Cek berdasarkan email
+                $admin // Data yang akan di-update/create
+            );
         }
     }
 }

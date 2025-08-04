@@ -20,6 +20,6 @@
         "vite": "^4.0.0"
     },
     "dependencies": {
-        "framer-motion": "^12.23.12"
+        "framer-motion": "^10.16.4"
     }
 }
