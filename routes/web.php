@@ -18,8 +18,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/artikel/{slug}', [HomeController::class, 'articleDetail'])->name('article.detail');
 Route::get('/project/{slug}', [HomeController::class, 'projectDetail'])->name('project.detail');
 
-// Admin Routes
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+// Admin Routes dengan middleware admin
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
     // CMS Sections
