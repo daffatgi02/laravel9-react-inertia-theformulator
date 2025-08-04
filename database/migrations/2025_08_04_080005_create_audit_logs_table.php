@@ -15,8 +15,8 @@ return new class extends Migration
             $table->string('action'); // create, update, delete
             $table->string('model_type'); // App\Models\Article, etc
             $table->unsignedBigInteger('model_id');
-            $table->json('old_values')->nullable();
-            $table->json('new_values')->nullable();
+            $table->text('old_values')->nullable();
+            $table->text('new_values')->nullable();
             $table->string('ip_address')->nullable();
             $table->string('user_agent')->nullable();
             $table->timestamps();

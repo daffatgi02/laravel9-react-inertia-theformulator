@@ -13,10 +13,10 @@ return new class extends Migration
             $table->id();
             $table->string('section_key')->unique(); // hero, articles, social_media, projects
             $table->string('title');
-            $table->json('content'); // flexible json content
+            $table->text('content'); // flexible json content
             $table->boolean('is_active')->default(true);
             $table->integer('sort_order')->default(0);
-            $table->json('seo_data')->nullable(); // meta title, description, keywords
+            $table->text('seo_data')->nullable(); // meta title, description, keywords
             $table->timestamps();
         });
     }

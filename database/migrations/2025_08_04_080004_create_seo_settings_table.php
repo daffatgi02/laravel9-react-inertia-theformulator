@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('og_title')->nullable();
             $table->text('og_description')->nullable();
             $table->string('og_image')->nullable();
-            $table->json('structured_data')->nullable(); // JSON-LD
+            $table->text('structured_data')->nullable(); // JSON-LD
             $table->timestamps();
         });
     }

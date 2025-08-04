@@ -15,10 +15,10 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description');
             $table->string('featured_image')->nullable();
-            $table->json('gallery')->nullable();
+            $table->text('gallery')->nullable();
             $table->string('project_url')->nullable();
             $table->string('category')->nullable();
-            $table->json('technologies')->nullable(); // array of tech used
+            $table->text('technologies')->nullable(); // array of tech used
             $table->string('status')->default('completed'); // ongoing, completed, paused
             $table->boolean('is_featured')->default(false);
             $table->integer('sort_order')->default(0);

@@ -16,9 +16,9 @@ return new class extends Migration
             $table->text('excerpt');
             $table->longText('content');
             $table->string('featured_image')->nullable();
-            $table->json('gallery')->nullable();
+            $table->text('gallery')->nullable();
             $table->string('status')->default('draft'); // draft, published
-            $table->json('seo_data')->nullable();
+            $table->text('seo_data')->nullable();
             $table->integer('sort_order')->default(0);
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
