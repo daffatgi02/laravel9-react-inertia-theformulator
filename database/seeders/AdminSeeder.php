@@ -21,9 +21,9 @@ class AdminSeeder extends Seeder
             ],
             [
                 'name' => 'Admin The Formulator',
-                'email' => 'admin@theformulator.com',
+                'email' => 'daffatgi02@gmail.com',
                 'email_verified_at' => now(),
-                'password' => Hash::make('admin123'),
+                'password' => Hash::make('daffa123'),
                 'role' => 'admin'
             ],
             [
