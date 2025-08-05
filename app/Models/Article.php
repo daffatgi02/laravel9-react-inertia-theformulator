@@ -3,13 +3,14 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Article extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
 
     protected $fillable = [
         'title',
@@ -33,7 +34,7 @@ class Article extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($article) {
             if (empty($article->slug)) {
                 $article->slug = Str::slug($article->title);
@@ -50,8 +51,8 @@ class Article extends Model
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
-                    ->whereNotNull('published_at')
-                    ->where('published_at', '<=', now());
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
     }
 
     public function scopeOrdered($query)

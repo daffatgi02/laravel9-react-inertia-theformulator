@@ -17,7 +17,7 @@ class CmsSectionSeeder extends Seeder
                 'content' => [
                     'name' => 'Jose Asmodeus',
                     'title' => 'The Formulator - CEO & Founder',
-                    'photo' => '/images/jose-hero.jpg',
+                    'photo' => '/images/jose.jpg',
                     'what' => 'Saya adalah seorang formulator berpengalaman yang mengkhususkan diri dalam pengembangan produk herbal dan natural skincare.',
                     'who' => 'Dengan latar belakang ilmu kimia dan pengalaman 10+ tahun di industri kosmetik.',
                     'when' => 'Memulai perjalanan sejak 2014 dan terus berinovasi hingga sekarang.',

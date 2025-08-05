@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Auth/AuthenticatedSessionController.php
 
 namespace App\Http\Controllers\Auth;
 
@@ -34,7 +35,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        // Redirect based on user role
+        if ($request->user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->intended('/'); // Regular users go to home page
     }
 
     /**

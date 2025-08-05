@@ -21,7 +21,7 @@ const HeroSection = ({ heroData }) => {
                         <div className="relative inline-block mb-8">
                             <div className="w-64 h-64 mx-auto lg:mx-0 rounded-full overflow-hidden shadow-2xl border-4 border-white">
                                 <img 
-                                    src={content.photo || '/images/default-profile.jpg'} 
+                                    src={content.photo || '/images/jose.jpg'} 
                                     alt={content.name}
                                     className="w-full h-full object-cover"
                                 />
@@ -58,7 +58,7 @@ const HeroSection = ({ heroData }) => {
                         transition={{ duration: 0.8, delay: 0.3 }}
                     >
                         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Tentang The Formulator</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Tentang theformulator.id</h3>
                             
                             <div className="space-y-6">
                                 {/* What */}

@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CmsSectionSeeder::class,
             AdminSeeder::class,
+            ArticleSeeder::class,    
+            ProjectSeeder::class,    
+            SocialContentSeeder::class,
         ]);
     }
 }
