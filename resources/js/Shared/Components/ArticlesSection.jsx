@@ -5,31 +5,20 @@ import { motion } from 'framer-motion';
 import { Link } from '@inertiajs/react';
 
 const ArticlesSection = ({ articlesData, articles }) => {
-    if (!articlesData || !articlesData.content) {
-        console.log('ArticlesSection: Missing articlesData or content');
-        return null;
-    }
-
-    if (!articles || articles.length === 0) {
-        console.log('ArticlesSection: No articles data');
-        return (
-            <section className="min-h-screen bg-gray-50 py-20 flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Artikel Segera Hadir</h2>
-                    <p className="text-gray-600">Kami sedang menyiapkan artikel-artikel menarik untuk Anda.</p>
-                </div>
-            </section>
-        );
-    }
+    // Limit to 3 latest articles
+    const latestArticles = articles ? articles.slice(0, 3) : [];
+    
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollContainerRef = useRef(null);
+    const sectionRef = useRef(null);
     const [isScrolling, setIsScrolling] = useState(false);
+    const [isInArticleSection, setIsInArticleSection] = useState(false);
 
     const scrollToNext = () => {
         if (isScrolling) return;
-
+        
         const nextIndex = currentIndex + 1;
-        if (nextIndex < articles.length) {
+        if (nextIndex < latestArticles.length) {
             setCurrentIndex(nextIndex);
             scrollToArticle(nextIndex);
         }
@@ -37,7 +26,7 @@ const ArticlesSection = ({ articlesData, articles }) => {
 
     const scrollToPrev = () => {
         if (isScrolling) return;
-
+        
         const prevIndex = currentIndex - 1;
         if (prevIndex >= 0) {
             setCurrentIndex(prevIndex);
@@ -49,7 +38,7 @@ const ArticlesSection = ({ articlesData, articles }) => {
         setIsScrolling(true);
         const container = scrollContainerRef.current;
         const articleHeight = container.clientHeight;
-
+        
         container.scrollTo({
             top: index * articleHeight,
             behavior: 'smooth'
@@ -58,34 +47,100 @@ const ArticlesSection = ({ articlesData, articles }) => {
         setTimeout(() => setIsScrolling(false), 800);
     };
 
+    // Handle scroll lock logic
     useEffect(() => {
+        const handleScroll = (e) => {
+            const section = sectionRef.current;
+            if (!section) return;
+
+            const rect = section.getBoundingClientRect();
+            const isVisible = rect.top <= 0 && rect.bottom >= window.innerHeight;
+            
+            setIsInArticleSection(isVisible);
+        };
+
         const handleWheel = (e) => {
-            if (isScrolling) return;
+            if (!isInArticleSection || isScrolling) return;
 
             e.preventDefault();
-
+            
             if (e.deltaY > 0) {
-                scrollToNext();
+                // Scrolling down
+                if (currentIndex < latestArticles.length - 1) {
+                    // Still have articles to navigate
+                    scrollToNext();
+                } else {
+                    // Last article - allow scroll to next section
+                    setIsInArticleSection(false);
+                    const nextSection = document.querySelector('#social');
+                    if (nextSection) {
+                        nextSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
             } else {
-                scrollToPrev();
+                // Scrolling up
+                if (currentIndex > 0) {
+                    // Navigate to previous article
+                    scrollToPrev();
+                } else {
+                    // First article - allow scroll to previous section
+                    setIsInArticleSection(false);
+                    const prevSection = document.querySelector('#home');
+                    if (prevSection) {
+                        prevSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
             }
         };
 
-        const container = scrollContainerRef.current;
-        if (container) {
-            container.addEventListener('wheel', handleWheel, { passive: false });
-            return () => container.removeEventListener('wheel', handleWheel);
-        }
-    }, [currentIndex, isScrolling]);
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('wheel', handleWheel, { passive: false });
 
-    if (!articlesData || !articles?.length) return null;
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('wheel', handleWheel);
+        };
+    }, [currentIndex, isScrolling, latestArticles.length, isInArticleSection]);
+
+    // Handle empty data
+    if (!articlesData || !articlesData.content) {
+        return null;
+    }
+
+    if (!latestArticles || latestArticles.length === 0) {
+        return (
+            <section id="articles" className="min-h-screen bg-gray-50 py-20 flex items-center justify-center">
+                <div className="text-center">
+                    <motion.h2 
+                        className="text-4xl font-bold text-gray-900 mb-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        {articlesData.content.heading}
+                    </motion.h2>
+                    <motion.p 
+                        className="text-gray-600"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        Artikel menarik akan segera hadir.
+                    </motion.p>
+                </div>
+            </section>
+        );
+    }
 
     return (
-        <section className="min-h-screen bg-gray-50 relative overflow-hidden">
+        <section 
+            id="articles" 
+            ref={sectionRef}
+            className="min-h-screen bg-gray-50 relative overflow-hidden"
+        >
             {/* Section Header */}
             <div className="absolute top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm p-8">
                 <div className="container mx-auto text-center">
-                    <motion.h2
+                    <motion.h2 
                         className="text-4xl font-bold text-gray-900 mb-4"
                         initial={{ opacity: 0, y: -20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -93,7 +148,7 @@ const ArticlesSection = ({ articlesData, articles }) => {
                     >
                         {articlesData.content.heading}
                     </motion.h2>
-                    <motion.p
+                    <motion.p 
                         className="text-xl text-gray-600 mb-2"
                         initial={{ opacity: 0, y: -10 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -101,7 +156,7 @@ const ArticlesSection = ({ articlesData, articles }) => {
                     >
                         {articlesData.content.subtitle}
                     </motion.p>
-                    <motion.p
+                    <motion.p 
                         className="text-gray-500"
                         initial={{ opacity: 0, y: -10 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -112,13 +167,13 @@ const ArticlesSection = ({ articlesData, articles }) => {
                 </div>
             </div>
 
-            {/* Articles Container with Vertical Scroll Snap */}
-            <div
+            {/* Articles Container */}
+            <div 
                 ref={scrollContainerRef}
                 className="h-screen pt-48 overflow-hidden scroll-smooth"
                 style={{ scrollSnapType: 'y mandatory' }}
             >
-                {articles.map((article, index) => (
+                {latestArticles.map((article, index) => (
                     <motion.div
                         key={article.id}
                         className="h-screen flex items-center justify-center px-4"
@@ -130,7 +185,7 @@ const ArticlesSection = ({ articlesData, articles }) => {
                         <div className="container mx-auto">
                             <div className="grid lg:grid-cols-2 gap-12 items-center">
                                 <div className="relative">
-                                    <img
+                                    <img 
                                         src={article.featured_image || '/images/default-article.jpg'}
                                         alt={article.title}
                                         className="w-full h-96 object-cover rounded-2xl shadow-2xl"
@@ -139,7 +194,7 @@ const ArticlesSection = ({ articlesData, articles }) => {
                                         Artikel #{index + 1}
                                     </div>
                                 </div>
-
+                                
                                 <div className="space-y-6">
                                     <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
                                         {article.title}
@@ -148,7 +203,7 @@ const ArticlesSection = ({ articlesData, articles }) => {
                                         {article.excerpt}
                                     </p>
                                     <div className="flex items-center space-x-4">
-                                        <Link
+                                        <Link 
                                             href={`/artikel/${article.slug}`}
                                             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                                         >
@@ -172,49 +227,33 @@ const ArticlesSection = ({ articlesData, articles }) => {
                 ))}
             </div>
 
-            {/* Navigation Controls */}
-            <div className="fixed right-8 top-1/2 transform -translate-y-1/2 z-20 space-y-4">
-                <button
-                    onClick={scrollToPrev}
-                    disabled={currentIndex === 0}
-                    className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                </button>
-
-                <div className="text-center">
-                    <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded-full shadow">
-                        {currentIndex + 1} / {articles.length}
-                    </span>
-                </div>
-
-                <button
-                    onClick={scrollToNext}
-                    disabled={currentIndex === articles.length - 1}
-                    className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-            </div>
-
-            {/* Progress Indicator */}
-            <div className="fixed left-8 top-1/2 transform -translate-y-1/2 z-20">
-                <div className="space-y-2">
-                    {articles.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => {
-                                setCurrentIndex(index);
-                                scrollToArticle(index);
-                            }}
-                            className={`w-2 h-8 rounded-full transition-all ${index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'
+            {/* Navigation Control - Simple & Clean */}
+            <div className="fixed right-8 top-1/2 transform -translate-y-1/2 z-20">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-3">
+                    {/* Progress Dots */}
+                    <div className="space-y-3">
+                        {latestArticles.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => {
+                                    setCurrentIndex(index);
+                                    scrollToArticle(index);
+                                }}
+                                className={`w-3 h-3 rounded-full transition-all ${
+                                    index === currentIndex 
+                                        ? 'bg-blue-600 scale-125' 
+                                        : 'bg-gray-300 hover:bg-gray-400'
                                 }`}
-                        />
-                    ))}
+                            />
+                        ))}
+                    </div>
+                    
+                    {/* Current Article Number */}
+                    <div className="text-center mt-3 pt-3 border-t border-gray-200">
+                        <span className="text-xs text-gray-500 font-medium">
+                            {currentIndex + 1}/{latestArticles.length}
+                        </span>
+                    </div>
                 </div>
             </div>
         </section>
