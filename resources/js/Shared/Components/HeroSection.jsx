@@ -9,10 +9,10 @@ const HeroSection = ({ heroData, articlesData, articles }) => {
     const latestArticles = articles ? articles.slice(0, 3) : [];
     
     // Total sections: CEO Hero + 3 Articles = 4 sections
-    const totalSections = 1 + latestArticles.length; // 1 CEO + articles
-    const [currentSection, setCurrentSection] = useState(0); // 0 = CEO, 1-3 = Articles
+    const totalSections = 1 + latestArticles.length;
+    const [currentSection, setCurrentSection] = useState(0);
     const [isScrolling, setIsScrolling] = useState(false);
-    const [isInHeroSection, setIsInHeroSection] = useState(false);
+    const [isHeroActive, setIsHeroActive] = useState(false);
     const sectionRef = useRef(null);
     const scrollContainerRef = useRef(null);
 
@@ -21,7 +21,7 @@ const HeroSection = ({ heroData, articlesData, articles }) => {
         
         setIsScrolling(true);
         const container = scrollContainerRef.current;
-        const sectionHeight = container.clientHeight;
+        const sectionHeight = window.innerHeight;
         
         container.scrollTo({
             top: sectionIndex * sectionHeight,
@@ -32,61 +32,102 @@ const HeroSection = ({ heroData, articlesData, articles }) => {
         setTimeout(() => setIsScrolling(false), 800);
     };
 
-    const scrollToNext = () => {
-        if (isScrolling) return;
-        
-        if (currentSection < totalSections - 1) {
-            scrollToSection(currentSection + 1);
-        } else {
-            // End of hero section, go to next section (Social Media)
-            setIsInHeroSection(false);
-            const nextSection = document.querySelector('#social');
-            if (nextSection) {
-                nextSection.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-    };
-
-    const scrollToPrev = () => {
-        if (isScrolling) return;
-        
-        if (currentSection > 0) {
-            scrollToSection(currentSection - 1);
-        }
-        // If at CEO section (0), let natural scroll handle going to previous page sections
-    };
-
-    // Handle scroll lock for extended hero section
+    // Detect when hero section is in viewport
     useEffect(() => {
-        const handleScroll = () => {
-            const section = sectionRef.current;
-            if (!section) return;
-
-            const rect = section.getBoundingClientRect();
-            const isVisible = rect.top <= 0 && rect.bottom >= window.innerHeight;
-            setIsInHeroSection(isVisible);
-        };
-
-        const handleWheel = (e) => {
-            if (!isInHeroSection || isScrolling) return;
-
-            e.preventDefault();
-            
-            if (e.deltaY > 0) {
-                scrollToNext();
-            } else {
-                scrollToPrev();
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                const isVisible = entry.isIntersecting;
+                setIsHeroActive(isVisible);
+                
+                // Control body scroll behavior
+                if (isVisible) {
+                    document.body.classList.add('hero-active');
+                } else {
+                    document.body.classList.remove('hero-active');
+                }
+            },
+            { 
+                threshold: 0.5,
+                rootMargin: '-10% 0px -10% 0px'
             }
-        };
+        );
 
-        window.addEventListener('scroll', handleScroll);
-        window.addEventListener('wheel', handleWheel, { passive: false });
+        if (sectionRef.current) {
+            observer.observe(sectionRef.current);
+        }
 
         return () => {
-            window.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('wheel', handleWheel);
+            observer.disconnect();
+            document.body.classList.remove('hero-active');
         };
-    }, [currentSection, isScrolling, totalSections, isInHeroSection]);
+    }, []);
+
+    // Handle scroll within hero section
+    useEffect(() => {
+        const handleWheel = (e) => {
+            if (!isHeroActive || isScrolling) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (e.deltaY > 0) {
+                // Scrolling down
+                if (currentSection < totalSections - 1) {
+                    scrollToSection(currentSection + 1);
+                } else {
+                    // End of hero section - allow scroll to next section
+                    setIsHeroActive(false);
+                    document.body.classList.remove('hero-active');
+                    
+                    // Scroll to next section
+                    const nextSection = document.querySelector('#social');
+                    if (nextSection) {
+                        nextSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            } else {
+                // Scrolling up
+                if (currentSection > 0) {
+                    scrollToSection(currentSection - 1);
+                } else {
+                    // First section - allow scroll to previous content
+                    setIsHeroActive(false);
+                    document.body.classList.remove('hero-active');
+                    
+                    // Let natural scroll handle going up
+                    window.scrollBy(0, -100);
+                }
+            }
+        };
+
+        // Add event listener with capture to override default behavior
+        window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+
+        return () => {
+            window.removeEventListener('wheel', handleWheel, { capture: true });
+        };
+    }, [currentSection, isScrolling, totalSections, isHeroActive]);
+
+    // Handle scroll snap on container
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const handleScroll = () => {
+            if (isScrolling) return;
+            
+            const scrollTop = container.scrollTop;
+            const sectionHeight = window.innerHeight;
+            const newSection = Math.round(scrollTop / sectionHeight);
+            
+            if (newSection !== currentSection) {
+                setCurrentSection(newSection);
+            }
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, [currentSection, isScrolling]);
 
     if (!heroData) return null;
 
@@ -96,18 +137,12 @@ const HeroSection = ({ heroData, articlesData, articles }) => {
         <section 
             id="home" 
             ref={sectionRef}
-            className="min-h-screen relative overflow-hidden"
+            className="hero-scroll-container relative"
         >
-            {/* Extended Hero Container */}
-            <div 
-                ref={scrollContainerRef}
-                className="h-screen overflow-hidden scroll-smooth"
-                style={{ scrollSnapType: 'y mandatory' }}
-            >
+            <div ref={scrollContainerRef} className="hero-scroll-container">
                 {/* Section 0: CEO Hero */}
                 <motion.div
-                    className="h-screen bg-gradient-to-br from-gray-50 to-white flex items-center py-20"
-                    style={{ scrollSnapAlign: 'start' }}
+                    className="hero-scroll-section bg-gradient-to-br from-gray-50 to-white flex items-center py-20"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8 }}
@@ -188,8 +223,7 @@ const HeroSection = ({ heroData, articlesData, articles }) => {
                 {latestArticles.map((article, index) => (
                     <motion.div
                         key={article.id}
-                        className="h-screen bg-gray-50 flex items-center py-20"
-                        style={{ scrollSnapAlign: 'start' }}
+                        className="hero-scroll-section bg-gray-50 flex items-center py-20"
                         initial={{ opacity: 0, scale: 0.95 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.6 }}
@@ -287,8 +321,8 @@ const HeroSection = ({ heroData, articlesData, articles }) => {
                 ))}
             </div>
 
-            {/* Navigation Control */}
-            <div className="fixed right-6 lg:right-8 top-1/2 transform -translate-y-1/2 z-30">
+            {/* Navigation Control - Fixed Position */}
+            <div className="fixed right-6 lg:right-8 top-1/2 transform -translate-y-1/2 z-50">
                 <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-3 border border-gray-200/50">
                     {/* Progress Dots */}
                     <div className="flex flex-col space-y-3 py-2">
@@ -309,11 +343,37 @@ const HeroSection = ({ heroData, articlesData, articles }) => {
                     {/* Section Label */}
                     <div className="border-t border-gray-200 mt-3 pt-3 text-center">
                         <span className="text-xs text-gray-500 font-medium">
-                            {currentSection === 0 ? 'CEO' : `Art ${currentSection}`}
+                            {currentSection === 0 ? 'CEO' : `Artikel ${currentSection}`}
                         </span>
                     </div>
                 </div>
             </div>
+
+            {/* Scroll Indicator - Only show when hero is active */}
+            {isHeroActive && currentSection < totalSections - 1 && (
+                <motion.div 
+                    className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1, duration: 0.6 }}
+                >
+                    <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-gray-200/50">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <span>Scroll untuk lanjut</span>
+                            <motion.svg 
+                                className="w-4 h-4" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                                animate={{ y: [0, 3, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </motion.svg>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
         </section>
     );
 };

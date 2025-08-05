@@ -1,3 +1,45 @@
+/* resources/css/app.css - Tambahkan ini */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom scroll behavior untuk hero section */
+.hero-scroll-container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior: none;
+}
+
+.hero-scroll-section {
+    height: 100vh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+
+/* Prevent default scroll pada body ketika di hero section */
+body.hero-active {
+    overflow: hidden;
+    scroll-behavior: auto;
+    overscroll-behavior: none;
+}
+
+/* Custom scrollbar untuk hero section */
+.hero-scroll-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.hero-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.hero-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+    border-radius: 2px;
+}
+
+.hero-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.8);
+}
